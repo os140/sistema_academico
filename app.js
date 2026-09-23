@@ -53,7 +53,7 @@ function nextId(items) {
 }
 
 function initials(name) {
-  return name
+  return String(name || "")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -62,10 +62,11 @@ function initials(name) {
 }
 
 function avatarSvg(name) {
+  const safeName = String(name || "Docente");
   const colors = ["#16388b", "#1f7a4d", "#7a1731", "#4d5bd1", "#2f6f9f"];
-  const firstChar = name?.charCodeAt(0) || 65;
-  const color = colors[(name.length + firstChar) % colors.length];
-  const text = initials(name);
+  const firstChar = safeName.charCodeAt(0) || 65;
+  const color = colors[(safeName.length + firstChar) % colors.length];
+  const text = initials(safeName) || "D";
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
@@ -76,9 +77,19 @@ function avatarSvg(name) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+function getDocenteById(id) {
+  return state.docentes.find((d) => d.id === Number(id)) || null;
+}
+
 function getDocenteName(id) {
-  const docente = state.docentes.find((d) => d.id === Number(id));
+  const docente = getDocenteById(id);
   return docente ? docente.nombre : "Sin docente";
+}
+
+function getDocenteFoto(id) {
+  const docente = getDocenteById(id);
+  if (!docente) return avatarSvg("Sin docente");
+  return docente.fotoUrl && docente.fotoUrl.trim() ? docente.fotoUrl : avatarSvg(docente.nombre);
 }
 
 function getMateriasCount(docenteId) {
@@ -86,11 +97,11 @@ function getMateriasCount(docenteId) {
 }
 
 function openModal(modal) {
-  modal.classList.remove("hidden");
+  if (modal) modal.classList.remove("hidden");
 }
 
 function closeModal(modal) {
-  modal.classList.add("hidden");
+  if (modal) modal.classList.add("hidden");
 }
 
 function switchTab(tab) {
@@ -98,12 +109,29 @@ function switchTab(tab) {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   });
 
-  views.docentes.classList.toggle("hidden", tab !== "docentes");
-  views.materias.classList.toggle("hidden", tab !== "materias");
+  if (views.docentes) views.docentes.classList.toggle("hidden", tab !== "docentes");
+  if (views.materias) views.materias.classList.toggle("hidden", tab !== "materias");
+}
+
+function updateDocentePreview(src) {
+  if (!docenteFotoPreview) return;
+
+  if (!src) {
+    docenteFotoPreview.src = "";
+    docenteFotoPreview.classList.add("hidden");
+    return;
+  }
+
+  docenteFotoPreview.src = src;
+  docenteFotoPreview.classList.remove("hidden");
 }
 
 function renderDocentes() {
-  $("#docentesCount").textContent = state.docentes.length;
+  const countEl = $("#docentesCount");
+  const listEl = $("#docentesList");
+  if (!countEl || !listEl) return;
+
+  countEl.textContent = String(state.docentes.length);
 
   const html = state.docentes.map((d) => {
     const count = getMateriasCount(d.id);
@@ -126,34 +154,52 @@ function renderDocentes() {
     `;
   }).join("");
 
-  $("#docentesList").innerHTML = html || "<p>No hay docentes.</p>";
+  listEl.innerHTML = html || "<p>No hay docentes.</p>";
 }
 
 function renderMateriaOptions() {
-  $("#materiaDocente").innerHTML = `
+  const select = $("#materiaDocente");
+  if (!select) return;
+
+  select.innerHTML = `
     <option value="">Seleccione docente</option>
     ${state.docentes.map((d) => `<option value="${d.id}">${d.nombre}</option>`).join("")}
   `;
 }
 
 function renderMaterias() {
-  $("#materiasCount").textContent = state.materias.length;
+  const countEl = $("#materiasCount");
+  const listEl = $("#materiasList");
+  if (!countEl || !listEl) return;
 
-  const rows = state.materias.map((m) => `
-    <tr>
-      <td>${m.nombre}</td>
-      <td><span class="badge">${m.cuatrimestre}</span></td>
-      <td>${getDocenteName(m.docenteId)}</td>
-      <td>
-        <div class="row-actions">
-          <button type="button" class="link" data-edit-materia="${m.id}">Editar</button>
-          <button type="button" class="link danger" data-del-materia="${m.id}">Eliminar</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+  countEl.textContent = String(state.materias.length);
 
-  $("#materiasList").innerHTML = rows || `<tr><td colspan="4">No hay materias.</td></tr>`;
+  const rows = state.materias.map((m) => {
+    const docente = getDocenteById(m.docenteId);
+    const docenteNombre = docente ? docente.nombre : "Sin docente";
+    const docenteFoto = getDocenteFoto(m.docenteId);
+
+    return `
+      <tr>
+        <td>${m.nombre}</td>
+        <td><span class="badge">${m.cuatrimestre}</span></td>
+        <td>
+          <div class="docente-inline">
+            <img class="avatar-sm" src="${docenteFoto}" alt="Foto de ${docenteNombre}">
+            <span>${docenteNombre}</span>
+          </div>
+        </td>
+        <td>
+          <div class="row-actions">
+            <button type="button" class="link" data-edit-materia="${m.id}">Editar</button>
+            <button type="button" class="link danger" data-del-materia="${m.id}">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  listEl.innerHTML = rows || `<tr><td colspan="4">No hay materias.</td></tr>`;
 }
 
 function renderAll() {
@@ -164,30 +210,40 @@ function renderAll() {
 }
 
 function openDocenteForm(mode, id = null) {
-  $("#docenteModalTitle").textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
-  $("#docenteId").value = id || "";
+  const title = $("#docenteModalTitle");
+  const idInput = $("#docenteId");
+  const nombreInput = $("#docenteNombre");
+  const fotoInput = $("#docenteFoto");
+
+  if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
+  if (idInput) idInput.value = id || "";
 
   const docente = state.docentes.find((d) => d.id === id);
   const fotoActual = docente ? (docente.fotoUrl || "") : "";
 
-  $("#docenteNombre").value = docente ? docente.nombre : "";
-  $("#docenteFoto").value = fotoActual;
+  if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
+  if (fotoInput) fotoInput.value = fotoActual;
+  if (docenteFotoInput) docenteFotoInput.value = "";
 
-  docenteFotoInput.value = "";
-  docenteFotoPreview.src = fotoActual;
-  docenteFotoPreview.classList.toggle("hidden", !fotoActual);
-
+  updateDocentePreview(fotoActual);
   openModal(docenteModal);
 }
 
 function openMateriaForm(mode, id = null) {
-  $("#materiaModalTitle").textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
-  $("#materiaId").value = id || "";
+  const title = $("#materiaModalTitle");
+  const idInput = $("#materiaId");
+  const nombreInput = $("#materiaNombre");
+  const cuatriInput = $("#materiaCuatrimestre");
+  const docenteInput = $("#materiaDocente");
+
+  if (title) title.textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
+  if (idInput) idInput.value = id || "";
 
   const materia = state.materias.find((m) => m.id === id);
-  $("#materiaNombre").value = materia ? materia.nombre : "";
-  $("#materiaCuatrimestre").value = materia ? materia.cuatrimestre : "";
-  $("#materiaDocente").value = materia ? String(materia.docenteId) : "";
+
+  if (nombreInput) nombreInput.value = materia ? materia.nombre : "";
+  if (cuatriInput) cuatriInput.value = materia ? materia.cuatrimestre : "";
+  if (docenteInput) docenteInput.value = materia ? String(materia.docenteId) : "";
 
   openModal(materiaModal);
 }
@@ -219,81 +275,97 @@ document.querySelectorAll(".tab").forEach((btn) => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
 
-$("#btnAddDocente").addEventListener("click", () => openDocenteForm("create"));
-$("#btnAddMateria").addEventListener("click", () => openMateriaForm("create"));
+const btnAddDocente = $("#btnAddDocente");
+if (btnAddDocente) {
+  btnAddDocente.addEventListener("click", () => openDocenteForm("create"));
+}
+
+const btnAddMateria = $("#btnAddMateria");
+if (btnAddMateria) {
+  btnAddMateria.addEventListener("click", () => openMateriaForm("create"));
+}
 
 if (docenteFotoInput) {
   docenteFotoInput.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      updateDocentePreview($("#docenteFoto")?.value || "");
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
       const result = String(reader.result || "");
-      $("#docenteFoto").value = result;
-      docenteFotoPreview.src = result;
-      docenteFotoPreview.classList.remove("hidden");
+      const fotoInput = $("#docenteFoto");
+      if (fotoInput) fotoInput.value = result;
+      updateDocentePreview(result);
     };
     reader.readAsDataURL(file);
   });
 }
 
-$("#docenteForm").addEventListener("submit", (e) => {
-  e.preventDefault();
+const docenteForm = $("#docenteForm");
+if (docenteForm) {
+  docenteForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  const id = $("#docenteId").value ? Number($("#docenteId").value) : null;
-  const nombre = $("#docenteNombre").value.trim();
-  const fotoUrl = $("#docenteFoto").value.trim();
+    const id = $("#docenteId").value ? Number($("#docenteId").value) : null;
+    const nombre = $("#docenteNombre").value.trim();
+    const fotoUrl = $("#docenteFoto").value.trim();
 
-  if (!nombre) return;
+    if (!nombre) return;
 
-  if (id) {
-    const docente = state.docentes.find((d) => d.id === id);
-    if (docente) {
-      docente.nombre = nombre;
-      docente.fotoUrl = fotoUrl;
+    if (id) {
+      const docente = state.docentes.find((d) => d.id === id);
+      if (docente) {
+        docente.nombre = nombre;
+        docente.fotoUrl = fotoUrl;
+      }
+    } else {
+      state.docentes.push({
+        id: nextId(state.docentes),
+        nombre,
+        fotoUrl
+      });
     }
-  } else {
-    state.docentes.push({
-      id: nextId(state.docentes),
-      nombre,
-      fotoUrl
-    });
-  }
 
-  closeModal(docenteModal);
-  renderAll();
-});
+    closeModal(docenteModal);
+    renderAll();
+  });
+}
 
-$("#materiaForm").addEventListener("submit", (e) => {
-  e.preventDefault();
+const materiaForm = $("#materiaForm");
+if (materiaForm) {
+  materiaForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  const id = $("#materiaId").value ? Number($("#materiaId").value) : null;
-  const nombre = $("#materiaNombre").value.trim();
-  const cuatrimestre = $("#materiaCuatrimestre").value.trim();
-  const docenteId = Number($("#materiaDocente").value);
+    const id = $("#materiaId").value ? Number($("#materiaId").value) : null;
+    const nombre = $("#materiaNombre").value.trim();
+    const cuatrimestre = $("#materiaCuatrimestre").value.trim();
+    const docenteId = Number($("#materiaDocente").value);
 
-  if (!nombre || !cuatrimestre || !docenteId) return;
+    if (!nombre || !cuatrimestre || !docenteId) return;
 
-  if (id) {
-    const materia = state.materias.find((m) => m.id === id);
-    if (materia) {
-      materia.nombre = nombre;
-      materia.cuatrimestre = cuatrimestre;
-      materia.docenteId = docenteId;
+    if (id) {
+      const materia = state.materias.find((m) => m.id === id);
+      if (materia) {
+        materia.nombre = nombre;
+        materia.cuatrimestre = cuatrimestre;
+        materia.docenteId = docenteId;
+      }
+    } else {
+      state.materias.push({
+        id: nextId(state.materias),
+        nombre,
+        cuatrimestre,
+        docenteId
+      });
     }
-  } else {
-    state.materias.push({
-      id: nextId(state.materias),
-      nombre,
-      cuatrimestre,
-      docenteId
-    });
-  }
 
-  closeModal(materiaModal);
-  renderAll();
-});
+    closeModal(materiaModal);
+    renderAll();
+  });
+}
 
 document.addEventListener("click", (e) => {
   const closeTarget = e.target.closest("[data-close]");
@@ -323,7 +395,6 @@ document.addEventListener("click", (e) => {
   const delMateria = e.target.closest("[data-del-materia]");
   if (delMateria) {
     deleteMateria(Number(delMateria.dataset.delMateria));
-    return;
   }
 });
 
