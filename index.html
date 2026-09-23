@@ -23,8 +23,8 @@
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-tab="docentes">Docentes</button>
-    <button class="tab" data-tab="materias">Materias</button>
+    <button type="button" class="tab active" data-tab="docentes">Docentes</button>
+    <button type="button" class="tab" data-tab="materias">Materias</button>
   </nav>
 
   <main class="page">
@@ -35,7 +35,7 @@
 
       <div class="list-head">
         <h3>DOCENTES <span id="docentesCount">0</span></h3>
-        <button class="primary" id="btnAddDocente">+ AGREGAR DOCENTE</button>
+        <button type="button" class="primary" id="btnAddDocente">+ AGREGAR DOCENTE</button>
       </div>
 
       <div class="cards" id="docentesList"></div>
@@ -48,7 +48,7 @@
 
       <div class="list-head">
         <h3>MATERIAS <span id="materiasCount">0</span></h3>
-        <button class="primary" id="btnAddMateria">+ AGREGAR MATERIA</button>
+        <button type="button" class="primary" id="btnAddMateria">+ AGREGAR MATERIA</button>
       </div>
 
       <div class="table-wrap">
@@ -67,26 +67,24 @@
     </section>
   </main>
 
-  <!-- Modal docente -->
   <div class="modal hidden" id="docenteModal">
     <div class="modal-card">
       <div class="modal-header">
         <h3 id="docenteModalTitle">AGREGAR DOCENTE</h3>
-        <button class="close" data-close="docenteModal">×</button>
+        <button type="button" class="close" data-close="docenteModal">×</button>
       </div>
 
       <form id="docenteForm" class="modal-body">
         <input type="hidden" id="docenteId" />
 
-        <div class="photo-upload">
-          <img id="docenteFotoPreview" class="photo-preview hidden" alt="Vista previa" />
-          <label class="photo-button" for="docenteFotoInput">Subir foto del docente</label>
-          <input type="file" id="docenteFotoInput" accept="image/*" hidden />
-        </div>
-
         <label>
           NOMBRE COMPLETO DEL DOCENTE
           <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
+        </label>
+
+        <label>
+          FOTO (URL OPCIONAL)
+          <input type="text" id="docenteFoto" placeholder="https://..." />
         </label>
 
         <div class="actions">
@@ -97,12 +95,11 @@
     </div>
   </div>
 
-  <!-- Modal materia -->
   <div class="modal hidden" id="materiaModal">
     <div class="modal-card">
       <div class="modal-header">
         <h3 id="materiaModalTitle">AGREGAR MATERIA</h3>
-        <button class="close" data-close="materiaModal">×</button>
+        <button type="button" class="close" data-close="materiaModal">×</button>
       </div>
 
       <form id="materiaForm" class="modal-body">
