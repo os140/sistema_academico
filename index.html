@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Gestión Académica</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">■</div>
+      <div>
+        <div class="brand-title">UNIVERSIDAD TECNOLÓGICA</div>
+        <div class="brand-title">DEL VALLE DEL MEZQUITAL</div>
+        <div class="brand-subtitle">Hidalgo, Gobierno, Tecnología</div>
+      </div>
+    </div>
+    <div class="sys-title">
+      <small>SISTEMA DE</small>
+      <strong>GESTIÓN ACADÉMICA</strong>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="docentes">Docentes</button>
+    <button class="tab" data-tab="materias">Materias</button>
+  </nav>
+
+  <main class="page">
+    <section class="section" id="view-docentes">
+      <div class="section-head">
+        <h2>GESTIÓN DE DOCENTES</h2>
+      </div>
+
+      <div class="list-head">
+        <h3>DOCENTES <span id="docentesCount">0</span></h3>
+        <button class="primary" id="btnAddDocente">+ AGREGAR DOCENTE</button>
+      </div>
+
+      <div class="cards" id="docentesList"></div>
+    </section>
+
+    <section class="section hidden" id="view-materias">
+      <div class="section-head">
+        <h2>GESTIÓN DE MATERIAS</h2>
+      </div>
+
+      <div class="list-head">
+        <h3>MATERIAS <span id="materiasCount">0</span></h3>
+        <button class="primary" id="btnAddMateria">+ AGREGAR MATERIA</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>MATERIA</th>
+              <th>CUATRIMESTRE</th>
+              <th>DOCENTE</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="materiasList"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal docente -->
+  <div class="modal hidden" id="docenteModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="docenteModalTitle">AGREGAR DOCENTE</h3>
+        <button class="close" data-close="docenteModal">×</button>
+      </div>
+
+      <form id="docenteForm" class="modal-body">
+        <input type="hidden" id="docenteId" />
+        <label>
+          NOMBRE COMPLETO DEL DOCENTE
+          <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
+        </label>
+
+        <label>
+          FOTO (URL OPCIONAL)
+          <input type="text" id="docenteFoto" placeholder="https://..." />
+        </label>
+
+        <div class="actions">
+          <button type="submit" class="primary wide">GUARDAR</button>
+          <button type="button" class="secondary" data-close="docenteModal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal materia -->
+  <div class="modal hidden" id="materiaModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="materiaModalTitle">AGREGAR MATERIA</h3>
+        <button class="close" data-close="materiaModal">×</button>
+      </div>
+
+      <form id="materiaForm" class="modal-body">
+        <input type="hidden" id="materiaId" />
+
+        <label>
+          NOMBRE DE LA MATERIA
+          <input type="text" id="materiaNombre" placeholder="Ej. Cálculo Diferencial" required />
+        </label>
+
+        <label>
+          CUATRIMESTRE
+          <input type="text" id="materiaCuatrimestre" placeholder="Cuatrimestre 1" required />
+        </label>
+
+        <label>
+          DOCENTE QUE LA IMPARTE
+          <select id="materiaDocente" required></select>
+        </label>
+
+        <div class="actions">
+          <button type="submit" class="primary wide">GUARDAR</button>
+          <button type="button" class="secondary" data-close="materiaModal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
