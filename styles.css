@@ -299,6 +299,29 @@ input, select{
   font-size:12px;
 }
 
+.photo-upload{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  margin-bottom:4px;
+}
+.photo-preview{
+  width:88px;
+  height:88px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid var(--blue);
+  background:#f4f7ff;
+}
+.photo-button{
+  display:inline-block;
+  font-size:11px;
+  color:var(--blue);
+  text-decoration:underline;
+  cursor:pointer;
+}
+
 @media (max-width: 900px){
   .cards{ grid-template-columns:1fr; }
 }
