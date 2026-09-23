@@ -17,7 +17,7 @@ const defaultState = {
 
 let state = loadState();
 
-const $ = (sel) => document.querySelector(sel);
+const $ = (selector) => document.querySelector(selector);
 
 const views = {
   docentes: $("#view-docentes"),
@@ -30,6 +30,7 @@ const materiaModal = $("#materiaModal");
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return structuredClone(defaultState);
+
   try {
     const parsed = JSON.parse(raw);
     return {
@@ -46,7 +47,7 @@ function saveState() {
 }
 
 function nextId(items) {
-  return items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1;
+  return items.length ? Math.max(...items.map((item) => item.id)) + 1 : 1;
 }
 
 function initials(name) {
@@ -60,13 +61,16 @@ function initials(name) {
 
 function avatarSvg(name) {
   const colors = ["#16388b", "#1f7a4d", "#7a1731", "#4d5bd1", "#2f6f9f"];
-  const color = colors[(name.length + name.charCodeAt(0)) % colors.length];
+  const firstChar = name?.charCodeAt(0) || 65;
+  const color = colors[(name.length + firstChar) % colors.length];
   const text = initials(name);
+
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
       <rect width="64" height="64" rx="32" fill="${color}"/>
       <text x="32" y="39" font-family="Arial" font-size="22" text-anchor="middle" fill="white" font-weight="700">${text}</text>
     </svg>`;
+
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -91,6 +95,7 @@ function switchTab(tab) {
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   });
+
   views.docentes.classList.toggle("hidden", tab !== "docentes");
   views.materias.classList.toggle("hidden", tab !== "materias");
 }
@@ -100,7 +105,7 @@ function renderDocentes() {
 
   const html = state.docentes.map((d) => {
     const count = getMateriasCount(d.id);
-    const foto = d.fotoUrl || avatarSvg(d.nombre);
+    const foto = d.fotoUrl && d.fotoUrl.trim() ? d.fotoUrl : avatarSvg(d.nombre);
 
     return `
       <div class="card">
@@ -119,7 +124,7 @@ function renderDocentes() {
     `;
   }).join("");
 
-  $("#docentesList").innerHTML = html || `<p>No hay docentes.</p>`;
+  $("#docentesList").innerHTML = html || "<p>No hay docentes.</p>";
 }
 
 function renderMateriaOptions() {
@@ -159,19 +164,23 @@ function renderAll() {
 function openDocenteForm(mode, id = null) {
   $("#docenteModalTitle").textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
   $("#docenteId").value = id || "";
+
   const docente = state.docentes.find((d) => d.id === id);
   $("#docenteNombre").value = docente ? docente.nombre : "";
   $("#docenteFoto").value = docente ? docente.fotoUrl : "";
+
   openModal(docenteModal);
 }
 
 function openMateriaForm(mode, id = null) {
   $("#materiaModalTitle").textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
   $("#materiaId").value = id || "";
+
   const materia = state.materias.find((m) => m.id === id);
   $("#materiaNombre").value = materia ? materia.nombre : "";
   $("#materiaCuatrimestre").value = materia ? materia.cuatrimestre : "";
   $("#materiaDocente").value = materia ? String(materia.docenteId) : "";
+
   openModal(materiaModal);
 }
 
@@ -183,6 +192,7 @@ function deleteDocente(id) {
 
   state.docentes = state.docentes.filter((d) => d.id !== id);
   state.materias = state.materias.filter((m) => m.docenteId !== id);
+
   renderAll();
 }
 
@@ -193,6 +203,7 @@ function deleteMateria(id) {
   if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
 
   state.materias = state.materias.filter((m) => m.id !== id);
+
   renderAll();
 }
 
@@ -268,16 +279,28 @@ document.addEventListener("click", (e) => {
   }
 
   const editDocente = e.target.closest("[data-edit-docente]");
-  if (editDocente) openDocenteForm("edit", Number(editDocente.dataset.editDocente));
+  if (editDocente) {
+    openDocenteForm("edit", Number(editDocente.dataset.editDocente));
+    return;
+  }
 
   const delDocente = e.target.closest("[data-del-docente]");
-  if (delDocente) deleteDocente(Number(delDocente.dataset.delDocente));
+  if (delDocente) {
+    deleteDocente(Number(delDocente.dataset.delDocente));
+    return;
+  }
 
   const editMateria = e.target.closest("[data-edit-materia]");
-  if (editMateria) openMateriaForm("edit", Number(editMateria.dataset.editMateria));
+  if (editMateria) {
+    openMateriaForm("edit", Number(editMateria.dataset.editMateria));
+    return;
+  }
 
   const delMateria = e.target.closest("[data-del-materia]");
-  if (delMateria) deleteMateria(Number(delMateria.dataset.delMateria));
+  if (delMateria) {
+    deleteMateria(Number(delMateria.dataset.delMateria));
+    return;
+  }
 });
 
 window.addEventListener("keydown", (e) => {
