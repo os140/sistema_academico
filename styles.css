@@ -469,36 +469,6 @@ input, select{
   font-size:12px;
 }
 
-.photo-upload{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-  margin-bottom:8px;
-}
-
-.photo-preview{
-  width:90px;
-  height:90px;
-  object-fit:cover;
-  border-radius:50%;
-  border:2px solid var(--blue);
-  background:#eef3ff;
-}
-
-.photo-preview.hidden{
-  display:none;
-}
-
-.photo-button{
-  display:inline-block;
-  color:var(--blue);
-  font-size:12px;
-  font-weight:700;
-  cursor:pointer;
-  text-decoration:underline;
-}
-
 .materia-files-box{
   border:1px solid var(--border);
   border-radius:6px;
@@ -520,7 +490,6 @@ input, select{
   font-size:11px;
   font-weight:700;
   border-radius:3px;
-  cursor:pointer;
 }
 
 .file-upload-row{
@@ -572,7 +541,7 @@ input, select{
   color:var(--danger);
 }
 
-@media (max-width: 900px){
+@media (max-width:900px){
   .cards{
     grid-template-columns:1fr;
   }
