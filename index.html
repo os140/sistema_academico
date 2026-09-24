@@ -13,7 +13,7 @@
       <div>
         <div class="brand-title">UNIVERSIDAD TECNOLÓGICA</div>
         <div class="brand-title">DEL VALLE DEL MEZQUITAL</div>
-        <div class="brand-subtitle">Aprender, Emprender, Transformar</div>
+        <div class="brand-subtitle">Hidalgo, Gobierno, Tecnología</div>
       </div>
     </div>
     <div class="sys-title">
@@ -77,17 +77,14 @@
 
       <form id="docenteForm" class="modal-body">
         <input type="hidden" id="docenteId" />
-        <input type="hidden" id="docenteFoto" />
-
-        <div class="photo-upload">
-          <img id="docenteFotoPreview" class="photo-preview hidden" alt="Vista previa del docente" />
-          <label class="photo-button" for="docenteFotoInput">Subir foto del docente</label>
-          <input type="file" id="docenteFotoInput" accept="image/*" hidden />
-        </div>
-
         <label>
           NOMBRE COMPLETO DEL DOCENTE
           <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
+        </label>
+
+        <label>
+          FOTO (URL OPCIONAL)
+          <input type="text" id="docenteFoto" placeholder="https://..." />
         </label>
 
         <div class="actions">
