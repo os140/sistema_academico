@@ -67,33 +67,28 @@
     </section>
   </main>
 
-  <!-- Modal docente -->
-  <div class="modal hidden" id="docenteModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="docenteModalTitle">AGREGAR DOCENTE</h3>
-        <button class="close" data-close="docenteModal">×</button>
-      </div>
+<!-- ...existing code...-->
+<form id="docenteForm" class="modal-body">
+  <input type="hidden" id="docenteId" />
+  <input type="hidden" id="docenteFoto" />
 
-      <form id="docenteForm" class="modal-body">
-        <input type="hidden" id="docenteId" />
-        <label>
-          NOMBRE COMPLETO DEL DOCENTE
-          <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
-        </label>
+  <label>
+    NOMBRE COMPLETO DEL DOCENTE
+    <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
+  </label>
 
-        <label>
-          FOTO (URL OPCIONAL)
-          <input type="text" id="docenteFoto" placeholder="https://..." />
-        </label>
-
-        <div class="actions">
-          <button type="submit" class="primary wide">GUARDAR</button>
-          <button type="button" class="secondary" data-close="docenteModal">Cancelar</button>
-        </div>
-      </form>
-    </div>
+  <div class="photo-upload">
+    <img id="docenteFotoPreview" class="photo-preview hidden" alt="Vista previa del docente" />
+    <label class="photo-button" for="docenteFotoInput">Subir foto del docente</label>
+    <input type="file" id="docenteFotoInput" accept="image/*" hidden />
   </div>
+
+  <div class="actions">
+    <button type="submit" class="primary wide">GUARDAR</button>
+    <button type="button" class="secondary" data-close="docenteModal">Cancelar</button>
+  </div>
+</form>
+<!-- ...existing code...-->
 
   <!-- Modal materia -->
   <div class="modal hidden" id="materiaModal">
