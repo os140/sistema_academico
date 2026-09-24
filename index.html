@@ -13,7 +13,7 @@
       <div>
         <div class="brand-title">UNIVERSIDAD TECNOLÓGICA</div>
         <div class="brand-title">DEL VALLE DEL MEZQUITAL</div>
-        <div class="brand-subtitle">Hidalgo, Gobierno, Tecnología</div>
+        <div class="brand-subtitle">Aprender, Emprender, Transformar</div>
       </div>
     </div>
     <div class="sys-title">
@@ -67,6 +67,7 @@
     </section>
   </main>
 
+  <!-- Modal docente -->
   <div class="modal hidden" id="docenteModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -97,8 +98,9 @@
     </div>
   </div>
 
+  <!-- Modal materia -->
   <div class="modal hidden" id="materiaModal">
-    <div class="modal-card">
+    <div class="modal-card modal-lg">
       <div class="modal-header">
         <h3 id="materiaModalTitle">AGREGAR MATERIA</h3>
         <button class="close" data-close="materiaModal">×</button>
@@ -121,6 +123,19 @@
           DOCENTE QUE LA IMPARTE
           <select id="materiaDocente" required></select>
         </label>
+
+        <div class="materia-files-box">
+          <div class="mini-head">
+            <strong>MATERIALES DE LA MATERIA</strong>
+          </div>
+
+          <div class="file-upload-row">
+            <label class="upload-button" for="materiaArchivoInput">+ Agregar archivo</label>
+            <input type="file" id="materiaArchivoInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png" multiple hidden />
+          </div>
+
+          <div id="materiaMaterialesList" class="materia-materiales-list"></div>
+        </div>
 
         <div class="actions">
           <button type="submit" class="primary wide">GUARDAR</button>
