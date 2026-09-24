@@ -8,41 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: 3, nombre: "Mtro. Carlos Reyes", fotoUrl: "" }
     ],
     materias: [
-      {
-        id: 1,
-        nombre: "Cálculo Diferencial",
-        cuatrimestre: "1",
-        docenteId: 1,
-        materiales: []
-      },
-      {
-        id: 2,
-        nombre: "Comunicación Oral",
-        cuatrimestre: "1",
-        docenteId: 2,
-        materiales: []
-      },
-      {
-        id: 3,
-        nombre: "Programación",
-        cuatrimestre: "1",
-        docenteId: 3,
-        materiales: []
-      },
-      {
-        id: 4,
-        nombre: "Álgebra Lineal",
-        cuatrimestre: "2",
-        docenteId: 1,
-        materiales: []
-      },
-      {
-        id: 5,
-        nombre: "Bases de Datos",
-        cuatrimestre: "3",
-        docenteId: 3,
-        materiales: []
-      }
+      { id: 1, nombre: "Cálculo Diferencial", cuatrimestre: "1", docenteId: 1, materiales: [] },
+      { id: 2, nombre: "Comunicación Oral", cuatrimestre: "1", docenteId: 2, materiales: [] },
+      { id: 3, nombre: "Programación", cuatrimestre: "1", docenteId: 3, materiales: [] },
+      { id: 4, nombre: "Álgebra Lineal", cuatrimestre: "2", docenteId: 1, materiales: [] },
+      { id: 5, nombre: "Bases de Datos", cuatrimestre: "3", docenteId: 3, materiales: [] }
     ]
   };
 
@@ -55,8 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const docenteModal = $("#docenteModal");
   const materiaModal = $("#materiaModal");
-  const docenteFotoInput = $("#docenteFotoInput");
-  const docenteFotoPreview = $("#docenteFotoPreview");
 
   let state = loadState();
 
@@ -147,19 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (views.docentes) views.docentes.classList.toggle("hidden", tab !== "docentes");
     if (views.materias) views.materias.classList.toggle("hidden", tab !== "materias");
-  }
-
-  function updateDocentePreview(src) {
-    if (!docenteFotoPreview) return;
-
-    if (!src) {
-      docenteFotoPreview.src = "";
-      docenteFotoPreview.classList.add("hidden");
-      return;
-    }
-
-    docenteFotoPreview.src = src;
-    docenteFotoPreview.classList.remove("hidden");
   }
 
   function getFileExtension(name) {
@@ -302,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = $("#docenteModalTitle");
     const idInput = $("#docenteId");
     const nombreInput = $("#docenteNombre");
-    const fotoHidden = $("#docenteFoto");
+    const fotoInput = $("#docenteFoto");
 
     if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
     if (idInput) idInput.value = id || "";
@@ -310,10 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const docente = state.docentes.find((d) => d.id === id);
 
     if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
-    if (fotoHidden) fotoHidden.value = docente ? (docente.fotoUrl || "") : "";
-
-    if (docenteFotoInput) docenteFotoInput.value = "";
-    updateDocentePreview(docente ? (docente.fotoUrl || "") : "");
+    if (fotoInput) fotoInput.value = docente ? (docente.fotoUrl || "") : "";
 
     openModal(docenteModal);
   }
@@ -337,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (list) {
       const materiales = materia?.materiales || [];
+
       list.innerHTML = materiales.length
         ? materiales.map((m) => `
             <div class="materia-file">
@@ -353,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal(materiaModal);
   }
 
-  async function addAttachmentsToMateria(files) {
+  async function addFilesToCurrentMateria(files) {
     const materiaId = Number($("#materiaId").value || 0);
     const materia = state.materias.find((m) => m.id === materiaId);
 
@@ -382,7 +335,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteDocente(id) {
     const docente = state.docentes.find((d) => d.id === id);
     if (!docente) return;
-
     if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
 
     state.docentes = state.docentes.filter((d) => d.id !== id);
@@ -393,14 +345,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteMateria(id) {
     const materia = state.materias.find((m) => m.id === id);
     if (!materia) return;
-
     if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
 
     state.materias = state.materias.filter((m) => m.id !== id);
     renderAll();
   }
 
-  function removeMaterialFromMateria(id) {
+  function removeMaterialFromCurrentMateria(id) {
     const materiaId = Number($("#materiaId").value || 0);
     const materia = state.materias.find((m) => m.id === materiaId);
 
@@ -436,22 +387,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       window.open(material.url, "_blank");
     }
-  }
-
-  if (docenteFotoInput) {
-    docenteFotoInput.addEventListener("change", (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = String(reader.result || "");
-        const hiddenFoto = $("#docenteFoto");
-        if (hiddenFoto) hiddenFoto.value = result;
-        updateDocentePreview(result);
-      };
-      reader.readAsDataURL(file);
-    });
   }
 
   $("#btnAddDocente")?.addEventListener("click", () => openDocenteForm("create"));
@@ -519,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const files = e.target.files;
     if (!files || !files.length) return;
 
-    await addAttachmentsToMateria(files);
+    await addFilesToCurrentMateria(files);
     e.target.value = "";
   });
 
@@ -562,7 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const removeMaterialBtn = e.target.closest("[data-remove-material]");
     if (removeMaterialBtn) {
-      removeMaterialFromMateria(Number(removeMaterialBtn.dataset.removeMaterial));
+      removeMaterialFromCurrentMateria(Number(removeMaterialBtn.dataset.removeMaterial));
     }
   });
 
