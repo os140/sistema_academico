@@ -27,263 +27,508 @@ document.addEventListener("DOMContentLoaded", () => {
   const materiaModal = $("#materiaModal");
   const docenteFotoInput = $("#docenteFotoInput");
   const docenteFotoPreview = $("#docenteFotoPreview");
- // ...existing code...
+  const materiaArchivoInput = $("#materiaArchivoInput");
 
-const materiaArchivoInput = $("#materiaArchivoInput");
+  let state = loadState();
 
-function renderMaterialesInline(materia) {
-  const materiales = materia?.materiales || [];
+  function cloneDefault() {
+    return JSON.parse(JSON.stringify(defaultState));
+  }
 
-  if (!materiales.length) {
+  function loadState() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return cloneDefault();
+
+    try {
+      const parsed = JSON.parse(raw);
+
+      return {
+        docentes: Array.isArray(parsed.docentes) ? parsed.docentes : [],
+        materias: Array.isArray(parsed.materias)
+          ? parsed.materias.map((m) => ({
+              ...m,
+              materiales: Array.isArray(m.materiales) ? m.materiales : []
+            }))
+          : []
+      };
+    } catch {
+      return cloneDefault();
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function nextId(items) {
+    return items.length ? Math.max(...items.map((item) => item.id)) + 1 : 1;
+  }
+
+  function initials(name) {
+    return String(name || "")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0].toUpperCase())
+      .join("");
+  }
+
+  function avatarSvg(name) {
+    const safeName = String(name || "Docente");
+    const colors = ["#16388b", "#1f7a4d", "#7a1731", "#4d5bd1", "#2f6f9f"];
+    const firstChar = safeName.charCodeAt(0) || 65;
+    const color = colors[(safeName.length + firstChar) % colors.length];
+    const text = initials(safeName) || "D";
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+        <rect width="64" height="64" rx="32" fill="${color}"/>
+        <text x="32" y="39" font-family="Arial" font-size="22" text-anchor="middle" fill="white" font-weight="700">${text}</text>
+      </svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  }
+
+  function getDocenteById(id) {
+    return state.docentes.find((d) => d.id === Number(id)) || null;
+  }
+
+  function getDocenteFoto(id) {
+    const docente = getDocenteById(id);
+    if (!docente) return avatarSvg("Sin docente");
+    return docente.fotoUrl && docente.fotoUrl.trim() ? docente.fotoUrl : avatarSvg(docente.nombre);
+  }
+
+  function getMateriasCount(docenteId) {
+    return state.materias.filter((m) => m.docenteId === docenteId).length;
+  }
+
+  function openModal(modal) {
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function closeModal(modal) {
+    if (modal) modal.classList.add("hidden");
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll(".tab").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+    });
+
+    if (views.docentes) views.docentes.classList.toggle("hidden", tab !== "docentes");
+    if (views.materias) views.materias.classList.toggle("hidden", tab !== "materias");
+  }
+
+  function updateDocentePreview(src) {
+    if (!docenteFotoPreview) return;
+
+    if (!src) {
+      docenteFotoPreview.src = "";
+      docenteFotoPreview.classList.add("hidden");
+      return;
+    }
+
+    docenteFotoPreview.src = src;
+    docenteFotoPreview.classList.remove("hidden");
+    docenteFotoPreview.style.borderRadius = "50%";
+    docenteFotoPreview.style.objectFit = "cover";
+    docenteFotoPreview.style.objectPosition = "center";
+  }
+
+  function renderDocentes() {
+    const countEl = $("#docentesCount");
+    const listEl = $("#docentesList");
+    if (!countEl || !listEl) return;
+
+    countEl.textContent = String(state.docentes.length);
+
+    const html = state.docentes.map((d) => {
+      const count = getMateriasCount(d.id);
+      const foto = d.fotoUrl && d.fotoUrl.trim() ? d.fotoUrl : avatarSvg(d.nombre);
+
+      return `
+        <div class="card">
+          <div class="card-main">
+            <img class="avatar" src="${foto}" alt="Foto de ${d.nombre}" />
+            <div class="card-text">
+              <strong>${d.nombre}</strong>
+              <small>${count} materia${count === 1 ? "" : "s"}</small>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button type="button" class="mini edit" data-edit-docente="${d.id}" title="Editar">✎</button>
+            <button type="button" class="mini del" data-del-docente="${d.id}" title="Eliminar">×</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    listEl.innerHTML = html || "<p>No hay docentes.</p>";
+  }
+
+  function renderMateriaOptions() {
+    const select = $("#materiaDocente");
+    if (!select) return;
+
+    select.innerHTML = `
+      <option value="">Seleccione docente</option>
+      ${state.docentes.map((d) => `<option value="${d.id}">${d.nombre}</option>`).join("")}
+    `;
+  }
+
+  function renderMaterialesInline(materia) {
+    const materiales = materia?.materiales || [];
+
+    if (!materiales.length) {
+      return `
+        <div class="materiales-inline">
+          <div class="materiales-inline-header">Materiales</div>
+          <div class="materiales-list">
+            <div class="material-item">
+              <span class="material-item-name">No hay materiales para esta materia.</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       <div class="materiales-inline">
         <div class="materiales-inline-header">Materiales</div>
         <div class="materiales-list">
-          <div class="material-item">
-            <span class="material-item-name">No hay materiales para esta materia.</span>
-          </div>
+          ${materiales.map((m) => `
+            <div class="material-item">
+              <span class="material-item-name">${m.name}</span>
+              <div class="material-actions">
+                <button type="button" class="material-btn" data-open-material="${m.id}">Descargar</button>
+                <button type="button" class="material-btn danger" data-remove-material="${m.id}">Quitar</button>
+              </div>
+            </div>
+          `).join("")}
         </div>
       </div>
     `;
   }
 
-  return `
-    <div class="materiales-inline">
-      <div class="materiales-inline-header">Materiales</div>
-      <div class="materiales-list">
-        ${materiales.map((m) => `
-          <div class="material-item">
-            <span class="material-item-name">${m.name}</span>
-            <div class="material-actions">
-              <button type="button" class="material-btn" data-open-material="${m.id}">Descargar</button>
-              <button type="button" class="material-btn danger" data-remove-material="${m.id}">Quitar</button>
+  function renderMaterias() {
+    const countEl = $("#materiasCount");
+    const listEl = $("#materiasList");
+    if (!countEl || !listEl) return;
+
+    countEl.textContent = String(state.materias.length);
+
+    const rows = state.materias.map((m) => {
+      const docente = getDocenteById(m.docenteId);
+      const docenteNombre = docente ? docente.nombre : "Sin docente";
+      const docenteFoto = getDocenteFoto(m.docenteId);
+
+      return `
+        <tr class="material-row">
+          <td>${m.nombre}</td>
+          <td><span class="badge">${m.cuatrimestre}</span></td>
+          <td>
+            <div class="docente-inline">
+              <img class="avatar-sm" src="${docenteFoto}" alt="Foto de ${docenteNombre}" />
+              <span>${docenteNombre}</span>
             </div>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function renderMaterias() {
-  const countEl = $("#materiasCount");
-  const listEl = $("#materiasList");
-  if (!countEl || !listEl) return;
-
-  countEl.textContent = String(state.materias.length);
-
-  const rows = state.materias.map((m) => {
-    const docente = getDocenteById(m.docenteId);
-    const docenteNombre = docente ? docente.nombre : "Sin docente";
-    const docenteFoto = getDocenteFoto(m.docenteId);
-
-    return `
-      <tr class="material-row">
-        <td>${m.nombre}</td>
-        <td><span class="badge">${m.cuatrimestre}</span></td>
-        <td>
-          <div class="docente-inline">
-            <img class="avatar-sm" src="${docenteFoto}" alt="Foto de ${docenteNombre}" />
-            <span>${docenteNombre}</span>
-          </div>
-        </td>
-        <td>
-          <div class="row-actions">
-            <button type="button" class="link" data-edit-materia="${m.id}">Editar</button>
-            <button type="button" class="link danger" data-del-materia="${m.id}">Eliminar</button>
-          </div>
-        </td>
-      </tr>
-      <tr class="materiales-row">
-        <td colspan="4">
-          ${renderMaterialesInline(m)}
-        </td>
-      </tr>
-    `;
-  }).join("");
-
-  listEl.innerHTML = rows || `<tr><td colspan="4">No hay materias.</td></tr>`;
-}
-
-function openMateriaForm(mode, id = null) {
-  const title = $("#materiaModalTitle");
-  const idInput = $("#materiaId");
-  const nombreInput = $("#materiaNombre");
-  const cuatriInput = $("#materiaCuatrimestre");
-  const docenteInput = $("#materiaDocente");
-  const list = $("#materiaMaterialesList");
-
-  if (title) title.textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
-  if (idInput) idInput.value = id || "";
-
-  const materia = state.materias.find((m) => m.id === id);
-
-  if (nombreInput) nombreInput.value = materia ? materia.nombre : "";
-  if (cuatriInput) cuatriInput.value = materia ? materia.cuatrimestre : "";
-  if (docenteInput) docenteInput.value = materia ? String(materia.docenteId) : "";
-
-  if (list) {
-    const materiales = materia?.materiales || [];
-    list.innerHTML = materiales.length
-      ? materiales.map((m) => `
-          <div class="materia-file">
-            <span class="materia-file-name">${m.name}</span>
-            <div class="materia-file-actions">
-              <button type="button" class="file-btn" data-open-material="${m.id}">Descargar</button>
-              <button type="button" class="file-btn danger" data-remove-material="${m.id}">Quitar</button>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="link" data-edit-materia="${m.id}">Editar</button>
+              <button type="button" class="link danger" data-del-materia="${m.id}">Eliminar</button>
             </div>
-          </div>
-        `).join("")
-      : "<p>No hay materiales agregados.</p>";
+          </td>
+        </tr>
+        <tr class="materiales-row">
+          <td colspan="4">
+            ${renderMaterialesInline(m)}
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    listEl.innerHTML = rows || `<tr><td colspan="4">No hay materias.</td></tr>`;
   }
 
-  openModal(materiaModal);
-}
+  function renderAll() {
+    renderDocentes();
+    renderMateriaOptions();
+    renderMaterias();
+    saveState();
+  }
 
-function getFileExtension(name) {
-  const parts = String(name || "").split(".");
-  return parts.length > 1 ? parts.pop().toLowerCase() : "";
-}
+  function openDocenteForm(mode, id = null) {
+    const title = $("#docenteModalTitle");
+    const idInput = $("#docenteId");
+    const nombreInput = $("#docenteNombre");
+    const fotoHidden = $("#docenteFoto");
 
-function fileToDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+    if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
+    if (idInput) idInput.value = id || "";
 
-async function addFilesToCurrentMateria(files) {
-  const materiaId = Number($("#materiaId").value || 0);
-  const materia = state.materias.find((m) => m.id === materiaId);
+    const docente = state.docentes.find((d) => d.id === id);
 
-  if (!materia) return;
+    if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
+    if (fotoHidden) fotoHidden.value = docente ? (docente.fotoUrl || "") : "";
 
-  const fileArray = Array.from(files || []);
-  if (!fileArray.length) return;
+    if (docenteFotoInput) docenteFotoInput.value = "";
+    updateDocentePreview(docente ? (docente.fotoUrl || "") : "");
 
-  const attachments = await Promise.all(fileArray.map(async (file) => {
-    const url = await fileToDataURL(file);
+    openModal(docenteModal);
+  }
 
-    return {
-      id: Date.now() + Math.random(),
-      name: file.name,
-      type: file.type || "application/octet-stream",
-      url,
-      extension: getFileExtension(file.name)
-    };
-  }));
+  function openMateriaForm(mode, id = null) {
+    const title = $("#materiaModalTitle");
+    const idInput = $("#materiaId");
+    const nombreInput = $("#materiaNombre");
+    const cuatriInput = $("#materiaCuatrimestre");
+    const docenteInput = $("#materiaDocente");
+    const list = $("#materiaMaterialesList");
 
-  materia.materiales = [...(materia.materiales || []), ...attachments];
-  renderAll();
-  openMateriaForm("edit", materia.id);
-}
+    if (title) title.textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
+    if (idInput) idInput.value = id || "";
 
-function removeMaterialFromCurrentMateria(id) {
-  const materiaId = Number($("#materiaId").value || 0);
-  const materia = state.materias.find((m) => m.id === materiaId);
-
-  if (!materia) return;
-
-  materia.materiales = (materia.materiales || []).filter((m) => m.id !== id);
-  renderAll();
-  openMateriaForm("edit", materia.id);
-}
-
-function openMaterial(id) {
-  const allMaterials = state.materias.flatMap((m) => m.materiales || []);
-  const material = allMaterials.find((m) => m.id === id);
-
-  if (!material) return;
-
-  const link = document.createElement("a");
-  link.href = material.url;
-  link.download = material.name || "archivo";
-  link.target = "_blank";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-if (materiaArchivoInput) {
-  materiaArchivoInput.addEventListener("change", async (e) => {
-    const files = e.target.files;
-    if (!files || !files.length) return;
-
-    await addFilesToCurrentMateria(files);
-    e.target.value = "";
-  });
-}
-
-$("#materiaForm")?.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const id = $("#materiaId").value ? Number($("#materiaId").value) : null;
-  const nombre = $("#materiaNombre").value.trim();
-  const cuatrimestre = $("#materiaCuatrimestre").value.trim();
-  const docenteId = Number($("#materiaDocente").value);
-
-  if (!nombre || !cuatrimestre || !docenteId) return;
-
-  if (id) {
     const materia = state.materias.find((m) => m.id === id);
-    if (materia) {
-      materia.nombre = nombre;
-      materia.cuatrimestre = cuatrimestre;
-      materia.docenteId = docenteId;
+
+    if (nombreInput) nombreInput.value = materia ? materia.nombre : "";
+    if (cuatriInput) cuatriInput.value = materia ? materia.cuatrimestre : "";
+    if (docenteInput) docenteInput.value = materia ? String(materia.docenteId) : "";
+
+    if (list) {
+      const materiales = materia?.materiales || [];
+      list.innerHTML = materiales.length
+        ? materiales.map((m) => `
+            <div class="materia-file">
+              <span class="materia-file-name">${m.name}</span>
+              <div class="materia-file-actions">
+                <button type="button" class="file-btn" data-open-material="${m.id}">Descargar</button>
+                <button type="button" class="file-btn danger" data-remove-material="${m.id}">Quitar</button>
+              </div>
+            </div>
+          `).join("")
+        : "<p>No hay materiales agregados.</p>";
     }
-  } else {
-    state.materias.push({
-      id: nextId(state.materias),
-      nombre,
-      cuatrimestre,
-      docenteId,
-      materiales: []
-    });
+
+    openModal(materiaModal);
   }
 
-  closeModal(materiaModal);
-  renderAll();
-});
+  function deleteDocente(id) {
+    const docente = state.docentes.find((d) => d.id === id);
+    if (!docente) return;
 
-document.addEventListener("click", (e) => {
-  const closeTarget = e.target.closest("[data-close]");
-  if (closeTarget) {
-    closeModal(document.getElementById(closeTarget.dataset.close));
-    return;
+    if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
+
+    state.docentes = state.docentes.filter((d) => d.id !== id);
+    state.materias = state.materias.filter((m) => m.docenteId !== id);
+    renderAll();
   }
 
-  const editMateria = e.target.closest("[data-edit-materia]");
-  if (editMateria) {
-    openMateriaForm("edit", Number(editMateria.dataset.editMateria));
-    return;
-  }
-
-  const delMateria = e.target.closest("[data-del-materia]");
-  if (delMateria) {
-    const materia = state.materias.find((m) => m.id === Number(delMateria.dataset.delMateria));
+  function deleteMateria(id) {
+    const materia = state.materias.find((m) => m.id === id);
     if (!materia) return;
 
     if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
 
-    state.materias = state.materias.filter((m) => m.id !== Number(delMateria.dataset.delMateria));
+    state.materias = state.materias.filter((m) => m.id !== id);
     renderAll();
-    return;
   }
 
-  const openMaterialBtn = e.target.closest("[data-open-material]");
-  if (openMaterialBtn) {
-    openMaterial(Number(openMaterialBtn.dataset.openMaterial));
-    return;
+  function getFileExtension(name) {
+    const parts = String(name || "").split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
   }
 
-  const removeMaterialBtn = e.target.closest("[data-remove-material]");
-  if (removeMaterialBtn) {
-    removeMaterialFromCurrentMateria(Number(removeMaterialBtn.dataset.removeMaterial));
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
-});
-// ...existing code...
+
+  async function addFilesToCurrentMateria(files) {
+    const materiaId = Number($("#materiaId").value || 0);
+    const materia = state.materias.find((m) => m.id === materiaId);
+
+    if (!materia) return;
+
+    const fileArray = Array.from(files || []);
+    if (!fileArray.length) return;
+
+    const attachments = await Promise.all(fileArray.map(async (file) => {
+      const url = await fileToDataURL(file);
+
+      return {
+        id: Date.now() + Math.random(),
+        name: file.name,
+        type: file.type || "application/octet-stream",
+        url,
+        extension: getFileExtension(file.name)
+      };
+    }));
+
+    materia.materiales = [...(materia.materiales || []), ...attachments];
+    renderAll();
+    openMateriaForm("edit", materia.id);
+  }
+
+  function removeMaterialFromCurrentMateria(id) {
+    const materiaId = Number($("#materiaId").value || 0);
+    const materia = state.materias.find((m) => m.id === materiaId);
+
+    if (!materia) return;
+
+    materia.materiales = (materia.materiales || []).filter((m) => m.id !== id);
+    renderAll();
+    openMateriaForm("edit", materia.id);
+  }
+
+  function downloadMaterial(id) {
+    const allMaterials = state.materias.flatMap((m) => m.materiales || []);
+    const material = allMaterials.find((m) => m.id === id);
+
+    if (!material) return;
+
+    const link = document.createElement("a");
+    link.href = material.url;
+    link.download = material.name || "archivo";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  if (docenteFotoInput) {
+    docenteFotoInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || "");
+        const hiddenFoto = $("#docenteFoto");
+        if (hiddenFoto) hiddenFoto.value = result;
+        updateDocentePreview(result);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (materiaArchivoInput) {
+    materiaArchivoInput.addEventListener("change", async (e) => {
+      const files = e.target.files;
+      if (!files || !files.length) return;
+
+      await addFilesToCurrentMateria(files);
+      e.target.value = "";
+    });
+  }
+
+  $("#btnAddDocente")?.addEventListener("click", () => openDocenteForm("create"));
+  $("#btnAddMateria")?.addEventListener("click", () => openMateriaForm("create"));
+
+  $("#docenteForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const id = $("#docenteId").value ? Number($("#docenteId").value) : null;
+    const nombre = $("#docenteNombre").value.trim();
+    const fotoUrl = $("#docenteFoto").value.trim();
+
+    if (!nombre) return;
+
+    if (id) {
+      const docente = state.docentes.find((d) => d.id === id);
+      if (docente) {
+        docente.nombre = nombre;
+        docente.fotoUrl = fotoUrl;
+      }
+    } else {
+      state.docentes.push({
+        id: nextId(state.docentes),
+        nombre,
+        fotoUrl
+      });
+    }
+
+    closeModal(docenteModal);
+    renderAll();
+  });
+
+  $("#materiaForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const id = $("#materiaId").value ? Number($("#materiaId").value) : null;
+    const nombre = $("#materiaNombre").value.trim();
+    const cuatrimestre = $("#materiaCuatrimestre").value.trim();
+    const docenteId = Number($("#materiaDocente").value);
+
+    if (!nombre || !cuatrimestre || !docenteId) return;
+
+    if (id) {
+      const materia = state.materias.find((m) => m.id === id);
+      if (materia) {
+        materia.nombre = nombre;
+        materia.cuatrimestre = cuatrimestre;
+        materia.docenteId = docenteId;
+      }
+    } else {
+      state.materias.push({
+        id: nextId(state.materias),
+        nombre,
+        cuatrimestre,
+        docenteId,
+        materiales: []
+      });
+    }
+
+    closeModal(materiaModal);
+    renderAll();
+  });
+
+  document.addEventListener("click", (e) => {
+    const closeTarget = e.target.closest("[data-close]");
+    if (closeTarget) {
+      closeModal(document.getElementById(closeTarget.dataset.close));
+      return;
+    }
+
+    const editDocente = e.target.closest("[data-edit-docente]");
+    if (editDocente) {
+      openDocenteForm("edit", Number(editDocente.dataset.editDocente));
+      return;
+    }
+
+    const delDocente = e.target.closest("[data-del-docente]");
+    if (delDocente) {
+      deleteDocente(Number(delDocente.dataset.delDocente));
+      return;
+    }
+
+    const editMateria = e.target.closest("[data-edit-materia]");
+    if (editMateria) {
+      openMateriaForm("edit", Number(editMateria.dataset.editMateria));
+      return;
+    }
+
+    const delMateria = e.target.closest("[data-del-materia]");
+    if (delMateria) {
+      deleteMateria(Number(delMateria.dataset.delMateria));
+      return;
+    }
+
+    const openMaterialBtn = e.target.closest("[data-open-material]");
+    if (openMaterialBtn) {
+      downloadMaterial(Number(openMaterialBtn.dataset.openMaterial));
+      return;
+    }
+
+    const removeMaterialBtn = e.target.closest("[data-remove-material]");
+    if (removeMaterialBtn) {
+      removeMaterialFromCurrentMateria(Number(removeMaterialBtn.dataset.removeMaterial));
+    }
+  });
+
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
