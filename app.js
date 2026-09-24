@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const parsed = JSON.parse(raw);
+
       return {
         docentes: Array.isArray(parsed.docentes) ? parsed.docentes : [],
         materias: Array.isArray(parsed.materias)
@@ -175,39 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  function renderMaterialesInline(materia) {
-    const materiales = materia?.materiales || [];
-    if (!materiales.length) {
-      return `
-        <div class="materiales-inline">
-          <div class="materiales-inline-header">Materiales</div>
-          <div class="materiales-list">
-            <div class="material-item">
-              <span class="material-item-name">No hay materiales para esta materia.</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="materiales-inline">
-        <div class="materiales-inline-header">Materiales</div>
-        <div class="materiales-list">
-          ${materiales.map((m) => `
-            <div class="material-item">
-              <span class="material-item-name">${m.name}</span>
-              <div class="material-actions">
-                <button type="button" class="material-btn" data-open-material="${m.id}">Abrir</button>
-                <button type="button" class="material-btn danger" data-remove-material="${m.id}">Quitar</button>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
-  }
-
   function renderMaterias() {
     const countEl = $("#materiasCount");
     const listEl = $("#materiasList");
@@ -237,11 +205,6 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </td>
         </tr>
-        <tr class="materiales-row">
-          <td colspan="4">
-            ${renderMaterialesInline(m)}
-          </td>
-        </tr>
       `;
     }).join("");
 
@@ -263,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
     if (idInput) idInput.value = id || "";
+
     const docente = state.docentes.find((d) => d.id === id);
 
     if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
@@ -280,7 +244,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const nombreInput = $("#materiaNombre");
     const cuatriInput = $("#materiaCuatrimestre");
     const docenteInput = $("#materiaDocente");
-    const list = $("#materiaMaterialesList");
 
     if (title) title.textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
     if (idInput) idInput.value = id || "";
@@ -291,27 +254,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cuatriInput) cuatriInput.value = materia ? materia.cuatrimestre : "";
     if (docenteInput) docenteInput.value = materia ? String(materia.docenteId) : "";
 
-    if (list) {
-      const materiales = materia?.materiales || [];
-      list.innerHTML = materiales.length
-        ? materiales.map((m) => `
-            <div class="materia-file">
-              <span class="materia-file-name">${m.name}</span>
-              <div class="materia-file-actions">
-                <button type="button" class="file-btn" data-open-material="${m.id}">Abrir</button>
-                <button type="button" class="file-btn danger" data-remove-material="${m.id}">Quitar</button>
-              </div>
-            </div>
-          `).join("")
-        : "<p>No hay materiales agregados.</p>";
-    }
-
     openModal(materiaModal);
   }
 
   function deleteDocente(id) {
     const docente = state.docentes.find((d) => d.id === id);
     if (!docente) return;
+
     if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
 
     state.docentes = state.docentes.filter((d) => d.id !== id);
@@ -322,88 +271,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteMateria(id) {
     const materia = state.materias.find((m) => m.id === id);
     if (!materia) return;
+
     if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
 
     state.materias = state.materias.filter((m) => m.id !== id);
     renderAll();
-  }
-
-  function getFileExtension(name) {
-    const parts = String(name || "").split(".");
-    return parts.length > 1 ? parts.pop().toLowerCase() : "";
-  }
-
-  function fileToDataURL(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function addFilesToCurrentMateria(files) {
-    const materiaId = Number($("#materiaId").value || 0);
-    const materia = state.materias.find((m) => m.id === materiaId);
-
-    if (!materia) return;
-
-    const fileArray = Array.from(files || []);
-    if (!fileArray.length) return;
-
-    const attachments = await Promise.all(fileArray.map(async (file) => {
-      const url = await fileToDataURL(file);
-
-      return {
-        id: Date.now() + Math.random(),
-        name: file.name,
-        type: file.type || "application/octet-stream",
-        url,
-        extension: getFileExtension(file.name)
-      };
-    }));
-
-    materia.materiales = [...(materia.materiales || []), ...attachments];
-    renderAll();
-    openMateriaForm("edit", materia.id);
-  }
-
-  function removeMaterialFromCurrentMateria(id) {
-    const materiaId = Number($("#materiaId").value || 0);
-    const materia = state.materias.find((m) => m.id === materiaId);
-
-    if (!materia) return;
-
-    materia.materiales = (materia.materiales || []).filter((m) => m.id !== id);
-    renderAll();
-    openMateriaForm("edit", materia.id);
-  }
-
-  function openMaterial(id) {
-    const allMaterials = state.materias.flatMap((m) => m.materiales || []);
-    const material = allMaterials.find((m) => m.id === id);
-
-    if (!material) return;
-
-    const newWindow = window.open("", "_blank");
-    if (newWindow) {
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>${material.name}</title>
-            <style>
-              body { margin: 0; background: #f3f6ff; }
-              iframe { width: 100vw; height: 100vh; border: 0; }
-            </style>
-          </head>
-          <body>
-            <iframe src="${material.url}" title="${material.name}"></iframe>
-          </body>
-        </html>
-      `);
-    } else {
-      window.open(material.url, "_blank");
-    }
   }
 
   if (docenteFotoInput) {
@@ -474,21 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
         id: nextId(state.materias),
         nombre,
         cuatrimestre,
-        docenteId,
-        materiales: []
+        docenteId
       });
     }
 
     closeModal(materiaModal);
     renderAll();
-  });
-
-  $("#materiaArchivoInput")?.addEventListener("change", async (e) => {
-    const files = e.target.files;
-    if (!files || !files.length) return;
-
-    await addFilesToCurrentMateria(files);
-    e.target.value = "";
   });
 
   document.addEventListener("click", (e) => {
@@ -520,17 +383,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (delMateria) {
       deleteMateria(Number(delMateria.dataset.delMateria));
       return;
-    }
-
-    const openMaterialBtn = e.target.closest("[data-open-material]");
-    if (openMaterialBtn) {
-      openMaterial(Number(openMaterialBtn.dataset.openMaterial));
-      return;
-    }
-
-    const removeMaterialBtn = e.target.closest("[data-remove-material]");
-    if (removeMaterialBtn) {
-      removeMaterialFromCurrentMateria(Number(removeMaterialBtn.dataset.removeMaterial));
     }
   });
 
