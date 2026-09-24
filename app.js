@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const docenteModal = $("#docenteModal");
   const materiaModal = $("#materiaModal");
-
   const docenteFotoInput = $("#docenteFotoInput");
   const docenteFotoPreview = $("#docenteFotoPreview");
 
@@ -131,6 +130,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     docenteFotoPreview.src = src;
     docenteFotoPreview.classList.remove("hidden");
+    docenteFotoPreview.style.borderRadius = "50%";
+    docenteFotoPreview.style.objectFit = "cover";
+    docenteFotoPreview.style.objectPosition = "center";
   }
 
   function renderDocentes() {
@@ -312,6 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteDocente(id) {
     const docente = state.docentes.find((d) => d.id === id);
     if (!docente) return;
+
     if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
 
     state.docentes = state.docentes.filter((d) => d.id !== id);
@@ -322,6 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteMateria(id) {
     const materia = state.materias.find((m) => m.id === id);
     if (!materia) return;
+
     if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
 
     state.materias = state.materias.filter((m) => m.id !== id);
@@ -416,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = String(reader.result || "");
         const hiddenFoto = $("#docenteFoto");
         if (hiddenFoto) hiddenFoto.value = result;
+
         updateDocentePreview(result);
       };
       reader.readAsDataURL(file);
