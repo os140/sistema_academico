@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const docenteModal = $("#docenteModal");
   const materiaModal = $("#materiaModal");
-
   let state = loadState();
 
   function cloneDefault() {
@@ -38,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const parsed = JSON.parse(raw);
-
       return {
         docentes: Array.isArray(parsed.docentes) ? parsed.docentes : [],
         materias: Array.isArray(parsed.materias)
@@ -117,18 +115,94 @@ document.addEventListener("DOMContentLoaded", () => {
     if (views.materias) views.materias.classList.toggle("hidden", tab !== "materias");
   }
 
-  function getFileExtension(name) {
-    const parts = String(name || "").split(".");
-    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+  function hideDocenteUrlField() {
+    const urlInput = $("#docenteFoto");
+    if (urlInput) {
+      const label = urlInput.closest("label");
+      if (label) label.style.display = "none";
+      urlInput.style.display = "none";
+      urlInput.value = "";
+    }
   }
 
-  function fileToDataURL(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  function ensureDocenteUploadUI() {
+    hideDocenteUrlField();
+
+    let input = $("#docenteFotoInput");
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "file";
+      input.id = "docenteFotoInput";
+      input.accept = "image/*";
+      input.hidden = true;
+      $("#docenteForm").appendChild(input);
+    }
+
+    let uploadWrap = $("#docenteFotoUploadWrap");
+    if (!uploadWrap) {
+      uploadWrap = document.createElement("div");
+      uploadWrap.id = "docenteFotoUploadWrap";
+      uploadWrap.style.display = "flex";
+      uploadWrap.style.flexDirection = "column";
+      uploadWrap.style.alignItems = "center";
+      uploadWrap.style.gap = "8px";
+      uploadWrap.style.margin = "4px 0 10px";
+
+      const preview = document.createElement("img");
+      preview.id = "docenteFotoPreview";
+      preview.alt = "Vista previa del docente";
+      preview.style.width = "90px";
+      preview.style.height = "90px";
+      preview.style.objectFit = "cover";
+      preview.style.borderRadius = "50%";
+      preview.style.border = "2px solid #2146a3";
+      preview.style.background = "#eef3ff";
+      preview.style.display = "none";
+      preview.classList.add("photo-preview");
+
+      const label = document.createElement("label");
+      label.htmlFor = "docenteFotoInput";
+      label.textContent = "Subir foto del docente";
+      label.style.cursor = "pointer";
+      label.style.color = "#2146a3";
+      label.style.fontWeight = "700";
+      label.style.fontSize = "12px";
+      label.style.textDecoration = "underline";
+
+      const fileName = document.createElement("span");
+      fileName.id = "docenteFotoName";
+      fileName.style.fontSize = "11px";
+      fileName.style.color = "#444";
+      fileName.textContent = "";
+
+      uploadWrap.appendChild(preview);
+      uploadWrap.appendChild(label);
+      uploadWrap.appendChild(fileName);
+
+      const actions = $("#docenteForm .actions");
+      if (actions) {
+        actions.parentNode.insertBefore(uploadWrap, actions);
+      } else {
+        $("#docenteForm").appendChild(uploadWrap);
+      }
+    }
+  }
+
+  function updateDocentePreview(src) {
+    const preview = $("#docenteFotoPreview");
+    const fileName = $("#docenteFotoName");
+    if (preview) {
+      if (!src) {
+        preview.src = "";
+        preview.style.display = "none";
+      } else {
+        preview.src = src;
+        preview.style.display = "block";
+      }
+    }
+    if (fileName) {
+      fileName.textContent = src ? "Foto seleccionada" : "";
+    }
   }
 
   function renderDocentes() {
@@ -174,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderMaterialesInline(materia) {
     const materiales = materia?.materiales || [];
-
     if (!materiales.length) {
       return `
         <div class="materiales-inline">
@@ -257,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = $("#docenteModalTitle");
     const idInput = $("#docenteId");
     const nombreInput = $("#docenteNombre");
-    const fotoInput = $("#docenteFoto");
+    const fotoHidden = $("#docenteFoto");
 
     if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
     if (idInput) idInput.value = id || "";
@@ -265,7 +338,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const docente = state.docentes.find((d) => d.id === id);
 
     if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
-    if (fotoInput) fotoInput.value = docente ? (docente.fotoUrl || "") : "";
+    if (fotoHidden) fotoHidden.value = docente ? (docente.fotoUrl || "") : "";
+
+    const input = $("#docenteFotoInput");
+    if (input) input.value = "";
+
+    updateDocentePreview(docente ? (docente.fotoUrl || "") : "");
 
     openModal(docenteModal);
   }
@@ -289,7 +367,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (list) {
       const materiales = materia?.materiales || [];
-
       list.innerHTML = materiales.length
         ? materiales.map((m) => `
             <div class="materia-file">
@@ -304,6 +381,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     openModal(materiaModal);
+  }
+
+  function deleteDocente(id) {
+    const docente = state.docentes.find((d) => d.id === id);
+    if (!docente) return;
+
+    if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
+
+    state.docentes = state.docentes.filter((d) => d.id !== id);
+    state.materias = state.materias.filter((m) => m.docenteId !== id);
+    renderAll();
+  }
+
+  function deleteMateria(id) {
+    const materia = state.materias.find((m) => m.id === id);
+    if (!materia) return;
+
+    if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
+
+    state.materias = state.materias.filter((m) => m.id !== id);
+    renderAll();
+  }
+
+  function getFileExtension(name) {
+    const parts = String(name || "").split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+  }
+
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   async function addFilesToCurrentMateria(files) {
@@ -330,25 +442,6 @@ document.addEventListener("DOMContentLoaded", () => {
     materia.materiales = [...(materia.materiales || []), ...attachments];
     renderAll();
     openMateriaForm("edit", materia.id);
-  }
-
-  function deleteDocente(id) {
-    const docente = state.docentes.find((d) => d.id === id);
-    if (!docente) return;
-    if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
-
-    state.docentes = state.docentes.filter((d) => d.id !== id);
-    state.materias = state.materias.filter((m) => m.docenteId !== id);
-    renderAll();
-  }
-
-  function deleteMateria(id) {
-    const materia = state.materias.find((m) => m.id === id);
-    if (!materia) return;
-    if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
-
-    state.materias = state.materias.filter((m) => m.id !== id);
-    renderAll();
   }
 
   function removeMaterialFromCurrentMateria(id) {
@@ -387,6 +480,29 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       window.open(material.url, "_blank");
     }
+  }
+
+  function bindDocenteFileInput() {
+    const fileInput = $("#docenteFotoInput");
+    if (!fileInput) return;
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || "");
+        const hiddenFoto = $("#docenteFoto");
+        if (hiddenFoto) hiddenFoto.value = result;
+
+        const fileName = $("#docenteFotoName");
+        if (fileName) fileName.textContent = file.name;
+
+        updateDocentePreview(result);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   $("#btnAddDocente")?.addEventListener("click", () => openDocenteForm("create"));
@@ -512,6 +628,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  ensureDocenteUploadUI();
+  bindDocenteFileInput();
   renderAll();
   switchTab("docentes");
 });
