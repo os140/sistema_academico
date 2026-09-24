@@ -40,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const parsed = JSON.parse(raw);
-
       return {
         docentes: Array.isArray(parsed.docentes) ? parsed.docentes : [],
         materias: Array.isArray(parsed.materias)
@@ -264,7 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
     if (idInput) idInput.value = id || "";
-
     const docente = state.docentes.find((d) => d.id === id);
 
     if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
@@ -314,7 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteDocente(id) {
     const docente = state.docentes.find((d) => d.id === id);
     if (!docente) return;
-
     if (!confirm(`¿Eliminar a ${docente.nombre}?`)) return;
 
     state.docentes = state.docentes.filter((d) => d.id !== id);
@@ -325,7 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function deleteMateria(id) {
     const materia = state.materias.find((m) => m.id === id);
     if (!materia) return;
-
     if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
 
     state.materias = state.materias.filter((m) => m.id !== id);
@@ -420,7 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = String(reader.result || "");
         const hiddenFoto = $("#docenteFoto");
         if (hiddenFoto) hiddenFoto.value = result;
-
         updateDocentePreview(result);
       };
       reader.readAsDataURL(file);
