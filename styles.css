@@ -396,6 +396,8 @@ input, select{
   font-size:12px;
 }
 
+//no queda la pinche foto
+
 .photo-upload{
   display:flex;
   flex-direction:column;
@@ -406,8 +408,8 @@ input, select{
 }
 
 .photo-preview{
-  width:120px;
-  height:120px;
+  width:90px;
+  height:90px;
   border-radius:50%;
   object-fit:cover;
   object-position:center;
