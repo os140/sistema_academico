@@ -97,11 +97,10 @@
       </form>
     </div>
   </div>
-
   <!-- Modal materia -->
   <!-- Modal materia -->
 <!-- ...existing code... -->
-
+ <!-- ...existing code... -->
   <!-- Modal materia -->
   <div class="modal hidden" id="materiaModal">
     <div class="modal-card">
@@ -109,25 +108,20 @@
         <h3 id="materiaModalTitle">AGREGAR MATERIA</h3>
         <button class="close" data-close="materiaModal">×</button>
       </div>
-
       <form id="materiaForm" class="modal-body">
         <input type="hidden" id="materiaId" />
-
         <label>
           NOMBRE DE LA MATERIA
           <input type="text" id="materiaNombre" placeholder="Ej. Cálculo Diferencial" required />
         </label>
-
         <label>
           CUATRIMESTRE
           <input type="text" id="materiaCuatrimestre" placeholder="Cuatrimestre 1" required />
         </label>
-
         <label>
           DOCENTE QUE LA IMPARTE
           <select id="materiaDocente" required></select>
         </label>
-
         <div class="materia-upload-box">
           <label for="materiaArchivoInput">MATERIALES</label>
           <input
@@ -137,9 +131,7 @@
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,image/*"
           />
         </div>
-
         <div id="materiaMaterialesList" class="materia-material-list"></div>
-
         <div class="actions">
           <button type="submit" class="primary wide">GUARDAR</button>
           <button type="button" class="secondary" data-close="materiaModal">Cancelar</button>
@@ -147,7 +139,7 @@
       </form>
     </div>
   </div>
-
+  <!-- ...existing code... -->
   <!-- ...existing code... -->
   <script src="./app.js"></script>
 </body>
