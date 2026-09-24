@@ -3,9 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const defaultState = {
     docentes: [
-      { id: 1, nombre: "Ing jenny ximena", fotoUrl: "" },
-      { id: 2, nombre: "Lic. Sofía Mendoza", fotoUrl: "" },
-      { id: 3, nombre: "Mtro. Carlos Reyes", fotoUrl: "" }
+      { id: 1, nombre: "Ing Jenny Ximena", fotoUrl: "" },
+      { id: 2, nombre: "Lic. Miriam Olguin", fotoUrl: "" },
+      { id: 3, nombre: "Mtro. Emiliano Bomaye", fotoUrl: "" }
     ],
     materias: [
       { id: 1, nombre: "Cálculo Diferencial", cuatrimestre: "1", docenteId: 1, materiales: [] },
