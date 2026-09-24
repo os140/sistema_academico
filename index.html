@@ -9,9 +9,7 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="brand-icon">
-        <img src="./imágeneslogo-utvm.png" alt="Logo UTVM" class="brand-logo" />
-      </div>
+      <div class="brand-icon">■</div>
       <div>
         <div class="brand-title">UNIVERSIDAD TECNOLÓGICA</div>
         <div class="brand-title">DEL VALLE DEL MEZQUITAL</div>
@@ -25,8 +23,8 @@
   </header>
 
   <nav class="tabs">
-    <button type="button" class="tab active" data-tab="docentes">Docentes</button>
-    <button type="button" class="tab" data-tab="materias">Materias</button>
+    <button class="tab active" data-tab="docentes">Docentes</button>
+    <button class="tab" data-tab="materias">Materias</button>
   </nav>
 
   <main class="page">
@@ -37,7 +35,7 @@
 
       <div class="list-head">
         <h3>DOCENTES <span id="docentesCount">0</span></h3>
-        <button type="button" class="primary" id="btnAddDocente">+ AGREGAR DOCENTE</button>
+        <button class="primary" id="btnAddDocente">+ AGREGAR DOCENTE</button>
       </div>
 
       <div class="cards" id="docentesList"></div>
@@ -50,7 +48,7 @@
 
       <div class="list-head">
         <h3>MATERIAS <span id="materiasCount">0</span></h3>
-        <button type="button" class="primary" id="btnAddMateria">+ AGREGAR MATERIA</button>
+        <button class="primary" id="btnAddMateria">+ AGREGAR MATERIA</button>
       </div>
 
       <div class="table-wrap">
@@ -66,13 +64,6 @@
           <tbody id="materiasList"></tbody>
         </table>
       </div>
-
-      <div class="materiales-panel">
-        <div class="list-head small-head">
-          <h3>MATERIALES DE LA MATERIA</h3>
-        </div>
-        <div id="materialesList" class="materiales-list"></div>
-      </div>
     </section>
   </main>
 
@@ -80,22 +71,19 @@
     <div class="modal-card">
       <div class="modal-header">
         <h3 id="docenteModalTitle">AGREGAR DOCENTE</h3>
-        <button type="button" class="close" data-close="docenteModal">×</button>
+        <button class="close" data-close="docenteModal">×</button>
       </div>
 
       <form id="docenteForm" class="modal-body">
         <input type="hidden" id="docenteId" />
-        <input type="hidden" id="docenteFoto" />
-
-        <div class="photo-upload">
-          <img id="docenteFotoPreview" class="photo-preview hidden" alt="Vista previa del docente" />
-          <label class="photo-button" for="docenteFotoInput">Subir foto del docente</label>
-          <input type="file" id="docenteFotoInput" accept="image/*" hidden />
-        </div>
-
         <label>
           NOMBRE COMPLETO DEL DOCENTE
           <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
+        </label>
+
+        <label>
+          FOTO (URL OPCIONAL)
+          <input type="text" id="docenteFoto" placeholder="https://..." />
         </label>
 
         <div class="actions">
@@ -110,7 +98,7 @@
     <div class="modal-card modal-lg">
       <div class="modal-header">
         <h3 id="materiaModalTitle">AGREGAR MATERIA</h3>
-        <button type="button" class="close" data-close="materiaModal">×</button>
+        <button class="close" data-close="materiaModal">×</button>
       </div>
 
       <form id="materiaForm" class="modal-body">
