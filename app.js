@@ -8,11 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: 3, nombre: "Mtro. Carlos Reyes", fotoUrl: "" }
     ],
     materias: [
-      { id: 1, nombre: "Cálculo Diferencial", cuatrimestre: "1", docenteId: 1, materiales: [] },
-      { id: 2, nombre: "Comunicación Oral", cuatrimestre: "1", docenteId: 2, materiales: [] },
-      { id: 3, nombre: "Programación", cuatrimestre: "1", docenteId: 3, materiales: [] },
-      { id: 4, nombre: "Álgebra Lineal", cuatrimestre: "2", docenteId: 1, materiales: [] },
-      { id: 5, nombre: "Bases de Datos", cuatrimestre: "3", docenteId: 3, materiales: [] }
+      { id: 1, nombre: "Cálculo Diferencial", cuatrimestre: "1", docenteId: 1 },
+      { id: 2, nombre: "Comunicación Oral", cuatrimestre: "1", docenteId: 2 },
+      { id: 3, nombre: "Programación", cuatrimestre: "1", docenteId: 3 },
+      { id: 4, nombre: "Álgebra Lineal", cuatrimestre: "2", docenteId: 1 },
+      { id: 5, nombre: "Bases de Datos", cuatrimestre: "3", docenteId: 3 }
     ]
   };
 
@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const docenteModal = $("#docenteModal");
-  const materiaModal = $("#materiaModal");
+  const docenteFotoInput = $("#docenteFotoInput");
+  const docenteFotoPreview = $("#docenteFotoPreview");
 
   let state = loadState();
 
@@ -40,12 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const parsed = JSON.parse(raw);
       return {
         docentes: Array.isArray(parsed.docentes) ? parsed.docentes : [],
-        materias: Array.isArray(parsed.materias)
-          ? parsed.materias.map((m) => ({
-              ...m,
-              materiales: Array.isArray(m.materiales) ? m.materiales : []
-            }))
-          : []
+        materias: Array.isArray(parsed.materias) ? parsed.materias : []
       };
     } catch {
       return cloneDefault();
@@ -116,18 +112,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (views.materias) views.materias.classList.toggle("hidden", tab !== "materias");
   }
 
-  function getFileExtension(name) {
-    const parts = String(name || "").split(".");
-    return parts.length > 1 ? parts.pop().toLowerCase() : "";
-  }
+  function updateDocentePreview(src) {
+    if (!docenteFotoPreview) return;
 
-  function fileToDataURL(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    if (!src) {
+      docenteFotoPreview.src = "";
+      docenteFotoPreview.classList.add("hidden");
+      return;
+    }
+
+    docenteFotoPreview.src = src;
+    docenteFotoPreview.classList.remove("hidden");
   }
 
   function renderDocentes() {
@@ -171,40 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  function renderMaterialesInline(materia) {
-    const materiales = materia?.materiales || [];
-
-    if (!materiales.length) {
-      return `
-        <div class="materiales-inline">
-          <div class="materiales-inline-header">Materiales</div>
-          <div class="materiales-list">
-            <div class="material-item">
-              <span class="material-item-name">No hay materiales para esta materia.</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="materiales-inline">
-        <div class="materiales-inline-header">Materiales</div>
-        <div class="materiales-list">
-          ${materiales.map((m) => `
-            <div class="material-item">
-              <span class="material-item-name">${m.name}</span>
-              <div class="material-actions">
-                <button type="button" class="material-btn" data-open-material="${m.id}">Abrir</button>
-                <button type="button" class="material-btn danger" data-remove-material="${m.id}">Quitar</button>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
-  }
-
   function renderMaterias() {
     const countEl = $("#materiasCount");
     const listEl = $("#materiasList");
@@ -218,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const docenteFoto = getDocenteFoto(m.docenteId);
 
       return `
-        <tr class="material-row">
+        <tr>
           <td>${m.nombre}</td>
           <td><span class="badge">${m.cuatrimestre}</span></td>
           <td>
@@ -232,11 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
               <button type="button" class="link" data-edit-materia="${m.id}">Editar</button>
               <button type="button" class="link danger" data-del-materia="${m.id}">Eliminar</button>
             </div>
-          </td>
-        </tr>
-        <tr class="materiales-row">
-          <td colspan="4">
-            ${renderMaterialesInline(m)}
           </td>
         </tr>
       `;
@@ -256,14 +212,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = $("#docenteModalTitle");
     const idInput = $("#docenteId");
     const nombreInput = $("#docenteNombre");
-    const fotoInput = $("#docenteFoto");
+    const fotoHidden = $("#docenteFoto");
 
     if (title) title.textContent = mode === "edit" ? "EDITAR DOCENTE" : "AGREGAR DOCENTE";
     if (idInput) idInput.value = id || "";
 
     const docente = state.docentes.find((d) => d.id === id);
+
     if (nombreInput) nombreInput.value = docente ? docente.nombre : "";
-    if (fotoInput) fotoInput.value = docente ? (docente.fotoUrl || "") : "";
+    if (fotoHidden) fotoHidden.value = docente ? (docente.fotoUrl || "") : "";
+
+    if (docenteFotoInput) docenteFotoInput.value = "";
+    updateDocentePreview(docente ? (docente.fotoUrl || "") : "");
 
     openModal(docenteModal);
   }
@@ -274,7 +234,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const nombreInput = $("#materiaNombre");
     const cuatriInput = $("#materiaCuatrimestre");
     const docenteInput = $("#materiaDocente");
-    const list = $("#materiaMaterialesList");
 
     if (title) title.textContent = mode === "edit" ? "EDITAR MATERIA" : "AGREGAR MATERIA";
     if (idInput) idInput.value = id || "";
@@ -285,48 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cuatriInput) cuatriInput.value = materia ? materia.cuatrimestre : "";
     if (docenteInput) docenteInput.value = materia ? String(materia.docenteId) : "";
 
-    if (list) {
-      const materiales = materia?.materiales || [];
-
-      list.innerHTML = materiales.length
-        ? materiales.map((m) => `
-            <div class="materia-file">
-              <span class="materia-file-name">${m.name}</span>
-              <div class="materia-file-actions">
-                <button type="button" class="file-btn" data-open-material="${m.id}">Abrir</button>
-                <button type="button" class="file-btn danger" data-remove-material="${m.id}">Quitar</button>
-              </div>
-            </div>
-          `).join("")
-        : "<p>No hay materiales agregados.</p>";
-    }
-
     openModal(materiaModal);
-  }
-
-  async function addFilesToSelectedMateria(files) {
-    const materiaId = Number($("#materiaId").value || 0);
-    const materia = state.materias.find((m) => m.id === materiaId);
-
-    if (!materia) return;
-
-    const fileArray = Array.from(files || []);
-    if (!fileArray.length) return;
-
-    const attachments = await Promise.all(fileArray.map(async (file) => {
-      const url = await fileToDataURL(file);
-      return {
-        id: Date.now() + Math.random(),
-        name: file.name,
-        type: file.type || "application/octet-stream",
-        url,
-        extension: getFileExtension(file.name)
-      };
-    }));
-
-    materia.materiales = [...(materia.materiales || []), ...attachments];
-    renderAll();
-    openMateriaForm("edit", materia.id);
   }
 
   function deleteDocente(id) {
@@ -348,46 +266,21 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAll();
   }
 
-  function removeMaterialFromCurrentMateria(id) {
-    const materiaId = Number($("#materiaId").value || 0);
-    const materia = state.materias.find((m) => m.id === materiaId);
-    if (!materia) return;
+  if (docenteFotoInput) {
+    docenteFotoInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    materia.materiales = (materia.materiales || []).filter((m) => m.id !== id);
-    renderAll();
-    openMateriaForm("edit", materia.id);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || "");
+        const fotoHidden = $("#docenteFoto");
+        if (fotoHidden) fotoHidden.value = result;
+        updateDocentePreview(result);
+      };
+      reader.readAsDataURL(file);
+    });
   }
-
-  function openMaterial(id) {
-    const allMaterials = state.materias.flatMap((m) => m.materiales || []);
-    const material = allMaterials.find((m) => m.id === id);
-
-    if (!material) return;
-
-    const newWindow = window.open("", "_blank");
-    if (newWindow) {
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>${material.name}</title>
-            <style>
-              body { margin: 0; background: #f4f7ff; }
-              iframe { width: 100vw; height: 100vh; border: 0; }
-            </style>
-          </head>
-          <body>
-            <iframe src="${material.url}" title="${material.name}"></iframe>
-          </body>
-        </html>
-      `);
-    } else {
-      window.open(material.url, "_blank");
-    }
-  }
-
-  document.querySelectorAll(".tab").forEach((btn) => {
-    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
-  });
 
   $("#btnAddDocente")?.addEventListener("click", () => openDocenteForm("create"));
   $("#btnAddMateria")?.addEventListener("click", () => openMateriaForm("create"));
@@ -441,21 +334,12 @@ document.addEventListener("DOMContentLoaded", () => {
         id: nextId(state.materias),
         nombre,
         cuatrimestre,
-        docenteId,
-        materiales: []
+        docenteId
       });
     }
 
     closeModal(materiaModal);
     renderAll();
-  });
-
-  $("#materiaArchivoInput")?.addEventListener("change", async (e) => {
-    const files = e.target.files;
-    if (!files || !files.length) return;
-
-    await addFilesToSelectedMateria(files);
-    e.target.value = "";
   });
 
   document.addEventListener("click", (e) => {
@@ -486,19 +370,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const delMateria = e.target.closest("[data-del-materia]");
     if (delMateria) {
       deleteMateria(Number(delMateria.dataset.delMateria));
-      return;
     }
+  });
 
-    const openMaterialBtn = e.target.closest("[data-open-material]");
-    if (openMaterialBtn) {
-      openMaterial(Number(openMaterialBtn.dataset.openMaterial));
-      return;
-    }
-
-    const removeMaterialBtn = e.target.closest("[data-remove-material]");
-    if (removeMaterialBtn) {
-      removeMaterialFromCurrentMateria(Number(removeMaterialBtn.dataset.removeMaterial));
-    }
+  document.querySelectorAll(".tab").forEach((btn) => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
 
   window.addEventListener("keydown", (e) => {
