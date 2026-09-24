@@ -13,7 +13,7 @@
       <div>
         <div class="brand-title">UNIVERSIDAD TECNOLÓGICA</div>
         <div class="brand-title">DEL VALLE DEL MEZQUITAL</div>
-        <div class="brand-subtitle">Aprender, Emprender, Transformar</div>
+        <div class="brand-subtitle">Hidalgo, Gobierno, Tecnología</div>
       </div>
     </div>
     <div class="sys-title">
@@ -76,14 +76,17 @@
 
       <form id="docenteForm" class="modal-body">
         <input type="hidden" id="docenteId" />
+        <input type="hidden" id="docenteFoto" />
+
+        <div class="photo-upload">
+          <img id="docenteFotoPreview" class="photo-preview hidden" alt="Vista previa del docente" />
+          <label class="photo-button" for="docenteFotoInput">Subir foto del docente</label>
+          <input type="file" id="docenteFotoInput" accept="image/*" hidden />
+        </div>
+
         <label>
           NOMBRE COMPLETO DEL DOCENTE
           <input type="text" id="docenteNombre" placeholder="Ej. Dra. Ana García Pérez" required />
-        </label>
-
-        <label>
-          FOTO (URL OPCIONAL)
-          <input type="text" id="docenteFoto" placeholder="https://..." />
         </label>
 
         <div class="actions">
@@ -95,7 +98,7 @@
   </div>
 
   <div class="modal hidden" id="materiaModal">
-    <div class="modal-card modal-lg">
+    <div class="modal-card">
       <div class="modal-header">
         <h3 id="materiaModalTitle">AGREGAR MATERIA</h3>
         <button class="close" data-close="materiaModal">×</button>
@@ -118,19 +121,6 @@
           DOCENTE QUE LA IMPARTE
           <select id="materiaDocente" required></select>
         </label>
-
-        <div class="materia-files-box">
-          <div class="mini-head">
-            <strong>MATERIALES DE LA MATERIA</strong>
-          </div>
-
-          <div class="file-upload-row">
-            <label class="upload-button" for="materiaArchivoInput">+ Agregar archivo</label>
-            <input type="file" id="materiaArchivoInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" multiple hidden />
-          </div>
-
-          <div id="materiaMaterialesList" class="materia-materiales-list"></div>
-        </div>
 
         <div class="actions">
           <button type="submit" class="primary wide">GUARDAR</button>
