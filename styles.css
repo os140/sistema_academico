@@ -2,7 +2,7 @@
   --blue:#2146a3;
   --blue-dark:#16388b;
   --green:#2ea84f;
-  --bg:#eef1f8;
+  --bg:#d7dfe8;
   --border:#cfd7ea;
   --text:#11306f;
   --muted:#65739a;
@@ -20,7 +20,7 @@ body{
 }
 
 .topbar{
-  background:#fff;
+  background:#dfe5ed;
   border-top:6px solid #7a1731;
   border-bottom:4px solid var(--green);
   display:flex;
@@ -36,18 +36,17 @@ body{
 }
 
 .brand-icon{
-  width:86px;
-  height:60px;
+  width:72px;
+  height:52px;
   border-radius:6px;
   background:var(--blue);
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
-  flex-shrink:0;
   color:#fff;
-  font-size:42px;
+  font-size:32px;
   line-height:1;
+  flex-shrink:0;
 }
 
 .brand-title{
@@ -55,6 +54,7 @@ body{
   font-weight:700;
   letter-spacing:.2px;
   color:var(--blue-dark);
+  line-height:1.2;
 }
 
 .brand-subtitle{
@@ -69,34 +69,37 @@ body{
   color:var(--blue-dark);
   font-size:13px;
   line-height:1.1;
+  font-weight:700;
 }
 
 .sys-title strong{
   display:block;
-  font-size:14px;
+  font-size:15px;
 }
 
 .tabs{
-  background:#fff;
+  background:#dfe5ed;
   border-bottom:1px solid var(--border);
   display:flex;
   gap:18px;
-  padding:8px 18px;
+  padding:8px 18px 0;
+  margin-top:0;
 }
 
 .tab{
   background:none;
   border:none;
   color:#1e2f58;
-  padding:4px 0;
+  padding:6px 0 10px;
   cursor:pointer;
   font-size:13px;
+  font-weight:700;
+  border-bottom:3px solid transparent;
 }
 
 .tab.active{
-  color:var(--green);
-  font-weight:700;
-  border-bottom:2px solid var(--green);
+  color:var(--blue-dark);
+  border-bottom-color:var(--green);
 }
 
 .page{
@@ -116,7 +119,7 @@ body{
 
 .section-head h2{
   margin:0;
-  font-size:13px;
+  font-size:14px;
 }
 
 .list-head{
@@ -128,8 +131,10 @@ body{
 
 .list-head h3{
   margin:0;
-  font-size:13px;
+  font-size:14px;
   letter-spacing:.4px;
+  color:var(--blue-dark);
+  font-weight:800;
 }
 
 .list-head span{
@@ -139,7 +144,7 @@ body{
   margin-left:4px;
 }
 
-.primary, .secondary, .mini, .link, .upload-button{
+.primary, .secondary, .mini, .link{
   border:none;
   border-radius:3px;
   cursor:pointer;
@@ -186,12 +191,14 @@ body{
   align-items:center;
   justify-content:space-between;
   min-height:66px;
+  box-shadow:0 1px 0 rgba(17,48,111,.04);
 }
 
 .card-main{
   display:flex;
   align-items:center;
   gap:10px;
+  min-width:0;
 }
 
 .avatar{
@@ -201,11 +208,13 @@ body{
   object-fit:cover;
   border:2px solid #d7deef;
   background:#f4f7ff;
+  flex-shrink:0;
 }
 
 .card-text strong{
   display:block;
   font-size:12px;
+  color:var(--blue-dark);
 }
 
 .card-text small{
@@ -224,6 +233,7 @@ body{
   font-size:13px;
   line-height:1;
   padding:0;
+  border-radius:50%;
 }
 
 .mini.edit{
@@ -263,16 +273,6 @@ body{
   padding:11px 12px;
   font-size:12px;
   vertical-align:middle;
-}
-
-.table tbody tr.material-row td{
-  background:#fff;
-}
-
-.table tbody tr.materiales-row td{
-  padding:0;
-  background:#f4f7ff;
-  border-top:none;
 }
 
 .badge{
@@ -316,65 +316,7 @@ body{
   object-fit:cover;
   border:1px solid #d7deef;
   background:#f4f7ff;
-}
-
-.materiales-inline{
-  padding:12px 14px 14px;
-  border-top:1px solid #dfe5f3;
-}
-
-.materiales-inline-header{
-  font-weight:700;
-  color:var(--blue);
-  margin-bottom:8px;
-  font-size:12px;
-}
-
-.materiales-list{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.material-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:8px 10px;
-  background:#fff;
-  border:1px solid #dfe5f3;
-  border-radius:4px;
-}
-
-.material-item-name{
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  font-size:12px;
-  color:var(--text);
-}
-
-.material-actions{
-  display:flex;
-  gap:6px;
   flex-shrink:0;
-}
-
-.material-btn{
-  border:1px solid var(--blue);
-  background:#fff;
-  color:var(--blue);
-  border-radius:4px;
-  padding:5px 8px;
-  font-size:10px;
-  cursor:pointer;
-}
-
-.material-btn.danger{
-  border-color:var(--danger);
-  color:var(--danger);
 }
 
 .modal{
@@ -389,15 +331,11 @@ body{
 
 .modal-card{
   width:100%;
-  max-width:320px;
+  max-width:360px;
   background:#fff;
   border-radius:10px;
   box-shadow:var(--shadow);
   overflow:hidden;
-}
-
-.modal-lg{
-  max-width:420px;
 }
 
 .modal-header{
@@ -411,7 +349,9 @@ body{
 
 .modal-header h3{
   margin:0;
-  font-size:13px;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.4px;
 }
 
 .close{
@@ -460,90 +400,38 @@ input, select{
   font-size:12px;
 }
 
-.materia-files-box{
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:10px;
-  background:#f9fbff;
-}
-
-.mini-head{
-  margin-bottom:8px;
-  font-size:11px;
-  color:var(--text);
-}
-
-.upload-button{
-  display:inline-block;
-  background:var(--blue);
-  color:#fff;
-  padding:7px 12px;
-  font-size:11px;
-  font-weight:700;
-  border-radius:3px;
-}
-
-.file-upload-row{
-  margin-bottom:8px;
-}
-
-.materia-materiales-list{
+.photo-upload{
   display:flex;
   flex-direction:column;
-  gap:8px;
-}
-
-.materia-file{
-  display:flex;
-  justify-content:space-between;
   align-items:center;
   gap:8px;
-  padding:7px 8px;
-  border:1px solid #dfe5f3;
-  background:#fff;
-  border-radius:4px;
+  margin-bottom:4px;
 }
 
-.materia-file-name{
-  font-size:11px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:260px;
+.photo-preview{
+  width:90px;
+  height:90px;
+  object-fit:cover;
+  border-radius:50%;
+  border:2px solid var(--blue);
+  background:#eef3ff;
 }
 
-.materia-file-actions{
-  display:flex;
-  gap:6px;
+.photo-preview.hidden{
+  display:none;
 }
 
-.file-btn{
-  border:1px solid var(--blue);
-  background:#fff;
+.photo-button{
+  display:inline-block;
   color:var(--blue);
-  border-radius:4px;
-  padding:4px 7px;
-  font-size:10px;
+  font-size:12px;
+  font-weight:700;
   cursor:pointer;
+  text-decoration:underline;
 }
 
-.file-btn.danger{
-  border-color:var(--danger);
-  color:var(--danger);
-}
-
-@media (max-width: 900px){
-  .cards{
-    grid-template-columns:1fr;
-  }
-
-  .topbar{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
-  }
-
-  .sys-title{
-    text-align:left;
-  }
+@media (max-width:900px){
+  .cards{ grid-template-columns:1fr; }
+  .topbar{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .sys-title{ text-align:left; }
 }
